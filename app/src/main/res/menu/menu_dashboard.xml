@@ -5,6 +5,10 @@
         android:title="Programas Educativos"
         app:showAsAction="never" />
     <item
+        android:id="@+id/menu_tutores"
+        android:title="Tutores"
+        app:showAsAction="never" />
+    <item
         android:id="@+id/menu_sincronizar"
         android:title="Sincronizar ahora"
         app:showAsAction="never" />

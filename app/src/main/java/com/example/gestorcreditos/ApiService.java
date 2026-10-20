@@ -22,4 +22,17 @@ public interface ApiService {
     // ELIMINAR: envía el ID por la URL (crud_programas.php?id=5)
     @DELETE("crud_programas.php")
     Call<ResponseBody> eliminarPrograma(@Query("id") int id);
+
+    // ===== TUTORES =====
+    // LEER: trae la lista de tutores
+    @GET("crud_tutores.php")
+    Call<List<Tutor>> getTutores();
+
+    // CREAR: envía un objeto Tutor en el cuerpo
+    @POST("crud_tutores.php")
+    Call<ResponseBody> crearTutor(@Body Tutor tutor);
+
+    // ELIMINAR: envía el ID por la URL (crud_tutores.php?id=5)
+    @DELETE("crud_tutores.php")
+    Call<ResponseBody> eliminarTutor(@Query("id") int id);
 }
