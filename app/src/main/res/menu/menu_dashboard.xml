@@ -1,0 +1,15 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/menu_programas"
+        android:title="Programas Educativos"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_sincronizar"
+        android:title="Sincronizar ahora"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/menu_usuarios"
+        android:title="Usuarios"
+        app:showAsAction="never" />
+</menu>

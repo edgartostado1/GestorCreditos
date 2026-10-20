@@ -1,0 +1,64 @@
+# Gradle
+.gradle/
+build/
+*/build/
+!/gradle/wrapper/gradle-wrapper.jar
+
+# Local configuration
+local.properties
+*.iml
+
+# IDE
+.idea/
+.idea/*
+!.idea/codeStyles/
+!.idea/inspectionProfiles/
+!.idea/vcs.xml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android
+*.apk
+*.ap_
+*.aab
+*.dex
+*.class
+*.jar
+*.so
+*.o
+
+# Java
+*.log
+
+# Kotlin
+*.kt~
+
+# CMake
+.cxx/
+.externalNativeBuild/
+
+# Testing
+test-output/
+coverage/
+*.ec
+*.exec
+
+# Misc
+*.bak
+*.tmp
+*.swp
+*.orig
+*.patch
+
+# Release / signing (never commit keystores!)
+*.jks
+*.keystore
+*.key
+signing.properties
+keystore.properties
+
+# Generated
+generated/
+out/
