@@ -54,6 +54,9 @@ public class DashboardActivity extends AppCompatActivity {
         if (id == R.id.menu_programas) {
             startActivity(new Intent(this, ProgramasActivity.class));
             return true;
+        } else if (id == R.id.menu_tutores) {
+            startActivity(new Intent(this, TutoresActivity.class));
+            return true;
         } else if (id == R.id.menu_usuarios) {
             startActivity(new Intent(this, UsuariosActivity.class));
             return true;

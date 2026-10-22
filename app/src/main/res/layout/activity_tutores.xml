@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarTutores"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorPrimary"
+        app:title="Gestión de Tutores"
+        app:titleTextColor="@android:color/white" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+        <!-- Campo: Clave del Tutor -->
+        <EditText
+            android:id="@+id/etClaveTutor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Clave del Tutor (Ej. TUT01)"
+            android:inputType="text" />
+
+        <!-- Campo: Nombre Completo -->
+        <EditText
+            android:id="@+id/etNombreTutor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Nombre Completo"
+            android:inputType="textPersonName"
+            android:layout_marginTop="8dp" />
+
+        <!-- Campo: Teléfono -->
+        <EditText
+            android:id="@+id/etTelefonoTutor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Teléfono (10 dígitos)"
+            android:inputType="phone"
+            android:layout_marginTop="8dp" />
+
+        <!-- Campo: Correo Electrónico -->
+        <EditText
+            android:id="@+id/etCorreoTutor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Correo Electrónico"
+            android:inputType="textEmailAddress"
+            android:layout_marginTop="8dp" />
+
+        <!-- Botón Guardar Local -->
+        <Button
+            android:id="@+id/btnGuardarTutor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Guardar Localmente (SQLite)"
+            android:layout_marginTop="16dp" />
+
+        <!-- Botón Sincronizar Servidor -->
+        <Button
+            android:id="@+id/btnSincronizarTutores"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sincronizar con Servidor"
+            android:backgroundTint="#2E7D32"
+            android:layout_marginTop="8dp" />
+
+        <!-- Título lista -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Lista de Tutores Registrados:"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="24dp" />
+
+        <!-- ListView para mostrar tutores -->
+        <ListView
+            android:id="@+id/lvTutores"
+            android:layout_width="match_parent"
+            android:layout_height="250dp"
+            android:layout_marginTop="8dp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
