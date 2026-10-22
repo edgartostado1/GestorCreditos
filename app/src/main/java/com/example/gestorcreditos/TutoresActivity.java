@@ -8,11 +8,22 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -22,16 +33,20 @@ import retrofit2.Response;
 public class TutoresActivity extends AppCompatActivity {
 
     private EditText etClave, etNombre, etTelefono, etCorreo;
-    private Button btnGuardar;
+    private Button btnGuardarLocal, btnSincronizar;
     private ListView lvTutores;
+
+    private DatabaseHelper dbHelper;
     private List<Tutor> listaTutores;
+
+    // URL centralizada en Config.java
+    private static final String URL_SYNC = Config.URL_BASE + "crud_tutores.php";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tutores);
 
-        // Toolbar con botón "Up" (atrás)
         Toolbar toolbar = findViewById(R.id.toolbarTutores);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
@@ -40,134 +55,217 @@ public class TutoresActivity extends AppCompatActivity {
             }
         }
 
-        // Referencias a vistas
+        dbHelper = new DatabaseHelper(this);
+
         etClave = findViewById(R.id.etClaveTutor);
         etNombre = findViewById(R.id.etNombreTutor);
         etTelefono = findViewById(R.id.etTelefonoTutor);
         etCorreo = findViewById(R.id.etCorreoTutor);
-        btnGuardar = findViewById(R.id.btnGuardarTutor);
+        btnGuardarLocal = findViewById(R.id.btnGuardarTutor);
+        btnSincronizar = findViewById(R.id.btnSincronizarTutores);
         lvTutores = findViewById(R.id.lvTutores);
 
-        // Cargar lista inicial
-        cargarTutores();
+        // Cargar lista inicial desde SQLite
+        cargarTutoresLocales();
 
-        // Botón guardar
-        btnGuardar.setOnClickListener(v -> validarYEnviar());
+        // Guardar Localmente en SQLite
+        btnGuardarLocal.setOnClickListener(v -> {
+            String clave = etClave.getText().toString().trim();
+            String nombre = etNombre.getText().toString().trim();
+            String telefono = etTelefono.getText().toString().trim();
+            String correo = etCorreo.getText().toString().trim();
 
-        // Eliminar con clic largo en item de la lista
+            if (clave.isEmpty() || nombre.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
+                Toast.makeText(this, "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Validación de correo
+            if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
+                etCorreo.setError("Correo electrónico inválido");
+                etCorreo.requestFocus();
+                return;
+            }
+
+            // Validación de teléfono
+            if (telefono.length() < 10) {
+                etTelefono.setError("El teléfono debe tener al menos 10 dígitos");
+                etTelefono.requestFocus();
+                return;
+            }
+
+            // Insertar en SQLite local (sincronizado = 0 = Pendiente)
+            boolean insertado = dbHelper.insertarTutor(clave, nombre, telefono, correo, 0);
+            if (insertado) {
+                Toast.makeText(this, "Guardado localmente en SQLite", Toast.LENGTH_SHORT).show();
+                limpiarFormulario();
+                cargarTutoresLocales();
+
+                // Intento automático de sincronización si hay red
+                if (NetworkUtils.hayConexionInternet(this)) {
+                    sincronizarPendientes();
+                }
+            } else {
+                Toast.makeText(this, "Error al guardar localmente", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        // Botón Manual de Sincronización
+        btnSincronizar.setOnClickListener(v -> {
+            if (NetworkUtils.hayConexionInternet(this)) {
+                sincronizarPendientes();
+            } else {
+                Toast.makeText(this, "Sin conexión a Internet. Se sincronizará más tarde.", Toast.LENGTH_LONG).show();
+            }
+        });
+
+        // Eliminar con Clic Largo (solo local)
         lvTutores.setOnItemLongClickListener((parent, view, position, id) -> {
             if (position < listaTutores.size()) {
                 Tutor t = listaTutores.get(position);
-                eliminarTutor(t.getId());
+                // Si ya está sincronizado, preguntar si eliminar también del servidor
+                if (t.getSincronizado() == 1) {
+                    mostrarDialogEliminarConServer(t);
+                } else {
+                    // Solo local
+                    dbHelper.eliminarTutorLocal(t.getId());
+                    Toast.makeText(this, "Tutor eliminado de SQLite", Toast.LENGTH_SHORT).show();
+                    cargarTutoresLocales();
+                }
             }
             return true;
         });
     }
 
-    // Botón "Up" en toolbar
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
     }
 
-    // ===== VALIDACIONES Y ENVÍO =====
-    private void validarYEnviar() {
-        String clave = etClave.getText().toString().trim();
-        String nombre = etNombre.getText().toString().trim();
-        String telefono = etTelefono.getText().toString().trim();
-        String correo = etCorreo.getText().toString().trim();
+    private void cargarTutoresLocales() {
+        listaTutores = dbHelper.obtenerTodosTutores();
+        ArrayList<String> visualizacion = new ArrayList<>();
 
-        // 1. Validación de campos vacíos
-        if (clave.isEmpty() || nombre.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
-            Toast.makeText(this, "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show();
-            return;
+        for (Tutor t : listaTutores) {
+            String estado = (t.getSincronizado() == 1) ? " ✓" : " ⏳";
+            visualizacion.add(t.getClave() + " - " + t.getNombre() + " (" + t.getCorreo() + ")" + estado);
         }
 
-        // 2. Validación de formato de correo electrónico
-        if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
-            etCorreo.setError("Correo electrónico inválido");
-            etCorreo.requestFocus();
-            return;
-        }
-
-        // 3. Validación de longitud de teléfono (mínimo 10 dígitos)
-        if (telefono.length() < 10) {
-            etTelefono.setError("El teléfono debe tener al menos 10 dígitos");
-            etTelefono.requestFocus();
-            return;
-        }
-
-        // Si pasa validaciones, enviar con Retrofit
-        Tutor nuevoTutor = new Tutor(clave, nombre, telefono, correo);
-        Call<ResponseBody> call = RetrofitClient.getInstance().getApi().crearTutor(nuevoTutor);
-
-        call.enqueue(new Callback<ResponseBody>() {
-            @Override
-            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(TutoresActivity.this, "Tutor guardado exitosamente", Toast.LENGTH_SHORT).show();
-                    limpiarFormulario();
-                    cargarTutores();
-                } else {
-                    Toast.makeText(TutoresActivity.this, "Error del servidor: " + response.code(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Toast.makeText(TutoresActivity.this, "Error de red: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, visualizacion);
+        lvTutores.setAdapter(adapter);
     }
 
-    // ===== CARGAR LISTA (GET) =====
-    private void cargarTutores() {
-        Call<List<Tutor>> call = RetrofitClient.getInstance().getApi().getTutores();
+    private void sincronizarPendientes() {
+        List<Tutor> pendientes = dbHelper.obtenerTutoresPendientes();
 
-        call.enqueue(new Callback<List<Tutor>>() {
-            @Override
-            public void onResponse(Call<List<Tutor>> call, Response<List<Tutor>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    listaTutores = response.body();
+        if (pendientes.isEmpty()) {
+            Toast.makeText(this, "No hay tutores pendientes por sincronizar", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-                    ArrayList<String> items = new ArrayList<>();
-                    for (Tutor t : listaTutores) {
-                        items.add(t.getClave() + " - " + t.getNombre() + " (" + t.getCorreo() + ")");
+        RequestQueue queue = Volley.newRequestQueue(this);
+
+        for (Tutor t : pendientes) {
+            // JSON para enviar al servidor (crud_tutores.php espera JSON)
+            JSONObject jsonBody = new JSONObject();
+            try {
+                jsonBody.put("clave", t.getClave());
+                jsonBody.put("nombre", t.getNombre());
+                jsonBody.put("telefono", t.getTelefono());
+                jsonBody.put("correo", t.getCorreo());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            // JsonObjectRequest envía JSON (Content-Type: application/json)
+            JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, URL_SYNC, jsonBody,
+                    response -> {
+                        try {
+                            if (response.getBoolean("success")) {
+                                // Marcar como sincronizado en local
+                                int localId = dbHelper.obtenerIdTutorPorClave(t.getClave());
+                                if (localId != -1) {
+                                    dbHelper.marcarTutorComoSincronizado(localId);
+                                }
+                                cargarTutoresLocales();
+                                Toast.makeText(this, "Sincronizado: " + t.getNombre(), Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(this, "Error servidor: " + response.optString("message"), Toast.LENGTH_SHORT).show();
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    },
+                    error -> {
+                        String msg = "Error de red";
+                        if (error.networkResponse != null && error.networkResponse.data != null) {
+                            try {
+                                String err = new String(error.networkResponse.data);
+                                JSONObject je = new JSONObject(err);
+                                msg = je.optString("message", err);
+                            } catch (Exception ignored) {}
+                        }
+                        Toast.makeText(this, "Error: " + msg, Toast.LENGTH_SHORT).show();
+                    });
+
+            queue.add(jsonRequest);
+        }
+    }
+
+    private void mostrarDialogEliminar(Tutor tutor) {
+        new AlertDialog.Builder(this)
+                .setTitle("Eliminar tutor")
+                .setMessage("¿Borrar \"" + tutor.getClave() + " - " + tutor.getNombre() + "\"?")
+                .setPositiveButton("Borrar", (dialog, which) -> {
+                    // Si está sincronizado, también eliminar del servidor
+                    if (tutor.getSincronizado() == 1) {
+                        eliminarTutorServer(tutor.getId());
+                    } else {
+                        // Solo local
+                        dbHelper.eliminarTutorLocal(tutor.getId());
+                        Toast.makeText(this, "Tutor eliminado de SQLite", Toast.LENGTH_SHORT).show();
+                        cargarTutoresLocales();
                     }
-
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                            TutoresActivity.this,
-                            android.R.layout.simple_list_item_1,
-                            items
-                    );
-                    lvTutores.setAdapter(adapter);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<Tutor>> call, Throwable t) {
-                Toast.makeText(TutoresActivity.this, "Error al cargar tutores: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
-    // ===== ELIMINAR (DELETE) =====
-    private void eliminarTutor(int id) {
-        Call<ResponseBody> call = RetrofitClient.getInstance().getApi().eliminarTutor(id);
+    private void mostrarDialogEliminarConServer(Tutor tutor) {
+        new AlertDialog.Builder(this)
+                .setTitle("Eliminar tutor")
+                .setMessage("¿Borrar \"" + tutor.getClave() + " - " + tutor.getNombre() + "\"?\n\nTambién se eliminará del servidor.")
+                .setPositiveButton("Borrar todo", (dialog, which) -> {
+                    // Eliminar del servidor
+                    eliminarTutorServer(tutor.getId());
+                    // Eliminar local
+                    dbHelper.eliminarTutorLocal(tutor.getId());
+                    Toast.makeText(this, "Tutor eliminado (local + servidor)", Toast.LENGTH_SHORT).show();
+                    cargarTutoresLocales();
+                })
+                .setNeutralButton("Solo local", (dialog, which) -> {
+                    dbHelper.eliminarTutorLocal(tutor.getId());
+                    Toast.makeText(this, "Eliminado solo de SQLite", Toast.LENGTH_SHORT).show();
+                    cargarTutoresLocales();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
+    }
 
+    private void eliminarTutorServer(int id) {
+        Call<ResponseBody> call = RetrofitClient.getInstance().getApi().eliminarTutor(id);
         call.enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                if (response.isSuccessful()) {
-                    Toast.makeText(TutoresActivity.this, "Tutor eliminado", Toast.LENGTH_SHORT).show();
-                    cargarTutores();
+                if (!response.isSuccessful()) {
+                    Toast.makeText(TutoresActivity.this, "Error al eliminar del servidor: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(Call<ResponseBody> call, Throwable t) {
-                Toast.makeText(TutoresActivity.this, "Error al eliminar: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(TutoresActivity.this, "Error de red al eliminar: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

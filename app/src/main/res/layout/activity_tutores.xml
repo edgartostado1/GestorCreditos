@@ -58,13 +58,22 @@
             android:inputType="textEmailAddress"
             android:layout_marginTop="8dp" />
 
-        <!-- Botón Guardar -->
+        <!-- Botón Guardar Local -->
         <Button
             android:id="@+id/btnGuardarTutor"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Guardar Tutor"
+            android:text="Guardar Localmente (SQLite)"
             android:layout_marginTop="16dp" />
+
+        <!-- Botón Sincronizar Servidor -->
+        <Button
+            android:id="@+id/btnSincronizarTutores"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sincronizar con Servidor"
+            android:backgroundTint="#2E7D32"
+            android:layout_marginTop="8dp" />
 
         <!-- Título lista -->
         <TextView
