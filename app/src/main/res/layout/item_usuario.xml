@@ -51,4 +51,6 @@
             android:src="@drawable/ic_delete"
             android:tint="?attr/colorError" />
 
+</LinearLayout>
+
 </com.google.android.material.card.MaterialCardView>
