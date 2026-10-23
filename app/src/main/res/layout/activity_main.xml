@@ -6,6 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
+    android:background="@android:color/black"
     tools:context=".MainActivity">
 
     <!-- MaterialToolbar -->
@@ -13,9 +14,9 @@
         android:id="@+id/toolbarLogin"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorSurface"
+        android:background="@android:color/black"
         app:title="@string/app_name"
-        app:titleTextColor="?attr/colorOnSurface"
+        app:titleTextColor="@android:color/white"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
