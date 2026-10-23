@@ -89,7 +89,7 @@ public class ProgramasActivity extends AppCompatActivity {
                         tilNombre.setError(null);
                     }
 
-                    int creditos;
+                    int creditos = 0;
                     try {
                         creditos = Integer.parseInt(etCreditos.getText().toString().trim());
                     } catch (NumberFormatException e) {
