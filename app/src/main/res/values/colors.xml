@@ -43,7 +43,7 @@
 
     <!-- Inverse (para modo oscuro) -->
     <color name="md_sys_color_inverse_surface">#2E3033</color>
-    <color name="md_sys_color_inverse_on_surface":#F0F0F0</color>
+    <color name="md_sys_color_inverse_on_surface">#F0F0F0</color>
     <color name="md_sys_color_inverse_primary">#A0C4FF</color>
 
     <!-- Scrim / Shadow -->
