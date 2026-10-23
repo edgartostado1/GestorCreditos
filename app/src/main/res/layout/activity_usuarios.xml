@@ -1,83 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="?attr/colorBackground"
+    tools:context=".UsuariosActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbarUsuarios"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        app:title="Gestión de Usuarios (Offline / Online)"
-        app:titleTextColor="@android:color/white" />
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar">
 
-    <ScrollView
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarUsuarios"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorSurface"
+            app:title="Gestión de Usuarios"
+            app:titleTextColor="?attr/colorOnSurface"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationContentDescription="Regresar" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvUsuarios"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:clipToPadding="false"
+        android:layout_marginBottom="100dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:listitem="@layout/item_usuario" />
+
+    <!-- Formulario flotante para agregar usuario -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardFormulario"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="24dp"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:layout_anchor="@id/rvUsuarios"
+        app:layout_anchorGravity="bottom|center_horizontal">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="20dp">
 
-        <!-- Formulario de Registro con matricula, password y nombre -->
-        <EditText
-            android:id="@+id/etMatriculaUser"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Matrícula del Usuario"
-            android:inputType="text" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nuevo Usuario"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface" />
 
-        <EditText
-            android:id="@+id/etPasswordUser"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Contraseña"
-            android:inputType="textPassword"
-            android:layout_marginTop="8dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilMatriculaUser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Matrícula del Usuario"
+                app:boxBackgroundMode="filled">
 
-        <EditText
-            android:id="@+id/etNombreUser"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nombre Completo"
-            android:inputType="textPersonName"
-            android:layout_marginTop="8dp" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etMatriculaUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Botón Guardar Local -->
-        <Button
-            android:id="@+id/btnGuardarLocal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Guardar Localmente (SQLite)"
-            android:layout_marginTop="12dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPasswordUser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Contraseña"
+                app:boxBackgroundMode="filled"
+                app:endIconMode="password_toggle">
 
-        <!-- Botón Sincronizar Servidor -->
-        <Button
-            android:id="@+id/btnSincronizar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sincronizar con Servidor"
-            android:backgroundTint="#2E7D32"
-            android:layout_marginTop="8dp" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etPasswordUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lista de Usuarios Guardados:"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:layout_marginTop="20dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilNombreUser"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Nombre Completo"
+                app:boxBackgroundMode="filled">
 
-        <ListView
-            android:id="@+id/lvUsuarios"
-            android:layout_width="match_parent"
-            android:layout_height="300dp"
-            android:layout_marginTop="8dp" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNombreUser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:gravity="center_horizontal"
+                android:weightSum="2">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGuardarLocal"
+                    style="@style/Widget.GestorCreditos.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Guardar Local" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSincronizar"
+                    style="@style/Widget.GestorCreditos.Button.Filled"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Sincronizar" />
+
+            </LinearLayout>
 
         </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

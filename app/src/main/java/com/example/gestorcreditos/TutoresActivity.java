@@ -2,28 +2,34 @@ package com.example.gestorcreditos;
 
 import android.os.Bundle;
 import android.util.Patterns;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -32,9 +38,11 @@ import retrofit2.Response;
 
 public class TutoresActivity extends AppCompatActivity {
 
-    private EditText etClave, etNombre, etTelefono, etCorreo;
-    private Button btnGuardarLocal, btnSincronizar;
-    private ListView lvTutores;
+    private TextInputLayout tilClave, tilNombre, tilTelefono, tilCorreo;
+    private TextInputEditText etClave, etNombre, etTelefono, etCorreo;
+    private MaterialButton btnGuardarLocal, btnSincronizar;
+    private RecyclerView rvTutores;
+    private MaterialCardView cardFormulario;
 
     private DatabaseHelper dbHelper;
     private List<Tutor> listaTutores;
@@ -52,18 +60,29 @@ public class TutoresActivity extends AppCompatActivity {
             setSupportActionBar(toolbar);
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setDisplayShowHomeEnabled(true);
             }
         }
 
         dbHelper = new DatabaseHelper(this);
 
+        // Formulario
+        tilClave = findViewById(R.id.tilClaveTutor);
+        tilNombre = findViewById(R.id.tilNombreTutor);
+        tilTelefono = findViewById(R.id.tilTelefonoTutor);
+        tilCorreo = findViewById(R.id.tilCorreoTutor);
         etClave = findViewById(R.id.etClaveTutor);
         etNombre = findViewById(R.id.etNombreTutor);
         etTelefono = findViewById(R.id.etTelefonoTutor);
         etCorreo = findViewById(R.id.etCorreoTutor);
+
         btnGuardarLocal = findViewById(R.id.btnGuardarTutor);
         btnSincronizar = findViewById(R.id.btnSincronizarTutores);
-        lvTutores = findViewById(R.id.lvTutores);
+        cardFormulario = findViewById(R.id.cardFormulario);
+
+        rvTutores = findViewById(R.id.rvTutores);
+        rvTutores.setAdapter(new TutoresAdapter());
+        rvTutores.setHasFixedSize(true);
 
         // Cargar lista inicial desde SQLite
         cargarTutoresLocales();
@@ -75,24 +94,47 @@ public class TutoresActivity extends AppCompatActivity {
             String telefono = etTelefono.getText().toString().trim();
             String correo = etCorreo.getText().toString().trim();
 
-            if (clave.isEmpty() || nombre.isEmpty() || telefono.isEmpty() || correo.isEmpty()) {
-                Toast.makeText(this, "Todos los campos son obligatorios", Toast.LENGTH_SHORT).show();
-                return;
+            boolean valido = true;
+            if (clave.isEmpty()) {
+                tilClave.setError("Ingresa la clave");
+                valido = false;
+            } else {
+                tilClave.setError(null);
+            }
+            if (nombre.isEmpty()) {
+                tilNombre.setError("Ingresa el nombre");
+                valido = false;
+            } else {
+                tilNombre.setError(null);
+            }
+            if (telefono.isEmpty()) {
+                tilTelefono.setError("Ingresa el teléfono");
+                valido = false;
+            } else {
+                tilTelefono.setError(null);
+            }
+            if (correo.isEmpty()) {
+                tilCorreo.setError("Ingresa el correo");
+                valido = false;
+            } else {
+                tilCorreo.setError(null);
             }
 
             // Validación de correo
             if (!Patterns.EMAIL_ADDRESS.matcher(correo).matches()) {
-                etCorreo.setError("Correo electrónico inválido");
+                tilCorreo.setError("Correo electrónico inválido");
                 etCorreo.requestFocus();
-                return;
+                valido = false;
             }
 
             // Validación de teléfono
             if (telefono.length() < 10) {
-                etTelefono.setError("El teléfono debe tener al menos 10 dígitos");
+                tilTelefono.setError("El teléfono debe tener al menos 10 dígitos");
                 etTelefono.requestFocus();
-                return;
+                valido = false;
             }
+
+            if (!valido) return;
 
             // Insertar en SQLite local (sincronizado = 0 = Pendiente)
             boolean insertado = dbHelper.insertarTutor(clave, nombre, telefono, correo, 0);
@@ -118,23 +160,6 @@ public class TutoresActivity extends AppCompatActivity {
                 Toast.makeText(this, "Sin conexión a Internet. Se sincronizará más tarde.", Toast.LENGTH_LONG).show();
             }
         });
-
-        // Eliminar con Clic Largo (solo local)
-        lvTutores.setOnItemLongClickListener((parent, view, position, id) -> {
-            if (position < listaTutores.size()) {
-                Tutor t = listaTutores.get(position);
-                // Si ya está sincronizado, preguntar si eliminar también del servidor
-                if (t.getSincronizado() == 1) {
-                    mostrarDialogEliminarConServer(t);
-                } else {
-                    // Solo local
-                    dbHelper.eliminarTutorLocal(t.getId());
-                    Toast.makeText(this, "Tutor eliminado de SQLite", Toast.LENGTH_SHORT).show();
-                    cargarTutoresLocales();
-                }
-            }
-            return true;
-        });
     }
 
     @Override
@@ -145,15 +170,7 @@ public class TutoresActivity extends AppCompatActivity {
 
     private void cargarTutoresLocales() {
         listaTutores = dbHelper.obtenerTodosTutores();
-        ArrayList<String> visualizacion = new ArrayList<>();
-
-        for (Tutor t : listaTutores) {
-            String estado = (t.getSincronizado() == 1) ? " ✓" : " ⏳";
-            visualizacion.add(t.getClave() + " - " + t.getNombre() + " (" + t.getCorreo() + ")" + estado);
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, visualizacion);
-        lvTutores.setAdapter(adapter);
+        rvTutores.getAdapter().notifyDataSetChanged();
     }
 
     private void sincronizarPendientes() {
@@ -167,7 +184,6 @@ public class TutoresActivity extends AppCompatActivity {
         RequestQueue queue = Volley.newRequestQueue(this);
 
         for (Tutor t : pendientes) {
-            // JSON para enviar al servidor (crud_tutores.php espera JSON)
             JSONObject jsonBody = new JSONObject();
             try {
                 jsonBody.put("clave", t.getClave());
@@ -178,12 +194,10 @@ public class TutoresActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            // JsonObjectRequest envía JSON (Content-Type: application/json)
             JsonObjectRequest jsonRequest = new JsonObjectRequest(Request.Method.POST, URL_SYNC, jsonBody,
                     response -> {
                         try {
                             if (response.getBoolean("success")) {
-                                // Marcar como sincronizado en local
                                 int localId = dbHelper.obtenerIdTutorPorClave(t.getClave());
                                 if (localId != -1) {
                                     dbHelper.marcarTutorComoSincronizado(localId);
@@ -213,20 +227,77 @@ public class TutoresActivity extends AppCompatActivity {
         }
     }
 
+    // ===== ADAPTER PARA RECYCLERVIEW =====
+    private class TutoresAdapter extends RecyclerView.Adapter<TutoresAdapter.ViewHolder> {
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_tutor, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Tutor t = listaTutores.get(position);
+            holder.tvClaveNombre.setText(t.getClave() + " - " + t.getNombre());
+            holder.tvTelefonoCorreo.setText(t.getTelefono() + " • " + t.getCorreo());
+
+            // Estado de sincronización
+            if (t.getSincronizado() == 1) {
+                holder.tvEstadoSync.setText("✓ Sincronizado");
+                holder.tvEstadoSync.setTextColor(getColor(R.color.md_sys_color_primary));
+            } else {
+                holder.tvEstadoSync.setText("⏳ Pendiente");
+                holder.tvEstadoSync.setTextColor(getColor(R.color.md_sys_color_secondary));
+            }
+
+            holder.itemView.setOnClickListener(v -> {
+                // Click en la tarjeta = mostrar opciones
+                if (t.getSincronizado() == 1) {
+                    mostrarDialogEliminarConServer(t);
+                } else {
+                    mostrarDialogEliminar(t);
+                }
+            });
+
+            holder.ivEliminar.setOnClickListener(v -> {
+                if (t.getSincronizado() == 1) {
+                    mostrarDialogEliminarConServer(t);
+                } else {
+                    mostrarDialogEliminar(t);
+                }
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return listaTutores.size();
+        }
+
+        class ViewHolder extends RecyclerView.ViewHolder {
+            TextView tvClaveNombre, tvTelefonoCorreo, tvEstadoSync;
+            ImageView ivEliminar;
+
+            ViewHolder(View view) {
+                super(view);
+                tvClaveNombre = view.findViewById(R.id.tvClaveNombre);
+                tvTelefonoCorreo = view.findViewById(R.id.tvTelefonoCorreo);
+                tvEstadoSync = view.findViewById(R.id.tvEstadoSync);
+                ivEliminar = view.findViewById(R.id.ivEliminar);
+            }
+        }
+    }
+
     private void mostrarDialogEliminar(Tutor tutor) {
         new AlertDialog.Builder(this)
                 .setTitle("Eliminar tutor")
                 .setMessage("¿Borrar \"" + tutor.getClave() + " - " + tutor.getNombre() + "\"?")
                 .setPositiveButton("Borrar", (dialog, which) -> {
-                    // Si está sincronizado, también eliminar del servidor
-                    if (tutor.getSincronizado() == 1) {
-                        eliminarTutorServer(tutor.getId());
-                    } else {
-                        // Solo local
-                        dbHelper.eliminarTutorLocal(tutor.getId());
-                        Toast.makeText(this, "Tutor eliminado de SQLite", Toast.LENGTH_SHORT).show();
-                        cargarTutoresLocales();
-                    }
+                    dbHelper.eliminarTutorLocal(tutor.getId());
+                    Toast.makeText(this, "Tutor eliminado de SQLite", Toast.LENGTH_SHORT).show();
+                    cargarTutoresLocales();
                 })
                 .setNegativeButton("Cancelar", null)
                 .show();
@@ -237,9 +308,7 @@ public class TutoresActivity extends AppCompatActivity {
                 .setTitle("Eliminar tutor")
                 .setMessage("¿Borrar \"" + tutor.getClave() + " - " + tutor.getNombre() + "\"?\n\nTambién se eliminará del servidor.")
                 .setPositiveButton("Borrar todo", (dialog, which) -> {
-                    // Eliminar del servidor
                     eliminarTutorServer(tutor.getId());
-                    // Eliminar local
                     dbHelper.eliminarTutorLocal(tutor.getId());
                     Toast.makeText(this, "Tutor eliminado (local + servidor)", Toast.LENGTH_SHORT).show();
                     cargarTutoresLocales();
@@ -275,5 +344,9 @@ public class TutoresActivity extends AppCompatActivity {
         etNombre.setText("");
         etTelefono.setText("");
         etCorreo.setText("");
+        tilClave.setError(null);
+        tilNombre.setError(null);
+        tilTelefono.setError(null);
+        tilCorreo.setError(null);
     }
 }

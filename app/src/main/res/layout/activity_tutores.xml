@@ -1,96 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:background="?attr/colorBackground"
+    tools:context=".TutoresActivity">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbarTutores"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        android:background="?attr/colorPrimary"
-        app:title="Gestión de Tutores"
-        app:titleTextColor="@android:color/white" />
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar">
 
-    <ScrollView
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarTutores"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorSurface"
+            app:title="Gestión de Tutores"
+            app:titleTextColor="?attr/colorOnSurface"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationContentDescription="Regresar" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvTutores"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="16dp">
+        android:padding="16dp"
+        android:clipToPadding="false"
+        android:layout_marginBottom="100dp"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:listitem="@layout/item_tutor" />
+
+    <!-- Formulario flotante para agregar tutor -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardFormulario"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:layout_marginBottom="24dp"
+        app:cardBackgroundColor="?attr/colorSurface"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:layout_anchor="@id/rvTutores"
+        app:layout_anchorGravity="bottom|center_horizontal"
+        app:layout_behavior="com.google.android.material.appbar.AppBarLayout$ScrollingViewBehavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:padding="20dp">
 
-        <!-- Campo: Clave del Tutor -->
-        <EditText
-            android:id="@+id/etClaveTutor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Clave del Tutor (Ej. TUT01)"
-            android:inputType="text" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nuevo Tutor"
+                android:textAppearance="?attr/textAppearanceTitleMedium"
+                android:textColor="?attr/colorOnSurface" />
 
-        <!-- Campo: Nombre Completo -->
-        <EditText
-            android:id="@+id/etNombreTutor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nombre Completo"
-            android:inputType="textPersonName"
-            android:layout_marginTop="8dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilClaveTutor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Clave del Tutor (Ej. TUT01)"
+                app:boxBackgroundMode="filled">
 
-        <!-- Campo: Teléfono -->
-        <EditText
-            android:id="@+id/etTelefonoTutor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Teléfono (10 dígitos)"
-            android:inputType="phone"
-            android:layout_marginTop="8dp" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etClaveTutor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Campo: Correo Electrónico -->
-        <EditText
-            android:id="@+id/etCorreoTutor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Correo Electrónico"
-            android:inputType="textEmailAddress"
-            android:layout_marginTop="8dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilNombreTutor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Nombre Completo"
+                app:boxBackgroundMode="filled">
 
-        <!-- Botón Guardar Local -->
-        <Button
-            android:id="@+id/btnGuardarTutor"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Guardar Localmente (SQLite)"
-            android:layout_marginTop="16dp" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etNombreTutor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Botón Sincronizar Servidor -->
-        <Button
-            android:id="@+id/btnSincronizarTutores"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Sincronizar con Servidor"
-            android:backgroundTint="#2E7D32"
-            android:layout_marginTop="8dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilTelefonoTutor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Teléfono (10 dígitos)"
+                app:boxBackgroundMode="filled">
 
-        <!-- Título lista -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Lista de Tutores Registrados:"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:layout_marginTop="24dp" />
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etTelefonoTutor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- ListView para mostrar tutores -->
-        <ListView
-            android:id="@+id/lvTutores"
-            android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:layout_marginTop="8dp" />
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCorreoTutor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="Correo Electrónico"
+                app:boxBackgroundMode="filled"
+                app:endIconMode="clear_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etCorreoTutor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"
+                    android:maxLines="1" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal"
+                android:gravity="center_horizontal"
+                android:weightSum="2">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnGuardarTutor"
+                    style="@style/Widget.GestorCreditos.Button.Outlined"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="Guardar Local" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSincronizarTutores"
+                    style="@style/Widget.GestorCreditos.Button.Filled"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="Sincronizar" />
+
+            </LinearLayout>
 
         </LinearLayout>
-    </ScrollView>
-</LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

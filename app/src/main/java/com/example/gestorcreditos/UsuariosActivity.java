@@ -1,33 +1,39 @@
 package com.example.gestorcreditos;
 
 import android.os.Bundle;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ListView;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class UsuariosActivity extends AppCompatActivity {
 
-    private EditText etMatricula, etPassword, etNombre;
-    private Button btnGuardarLocal, btnSincronizar;
-    private ListView lvUsuarios;
+    private TextInputLayout tilMatricula, tilPassword, tilNombre;
+    private com.google.android.material.textfield.TextInputEditText etMatricula, etPassword, etNombre;
+    private com.google.android.material.button.MaterialButton btnGuardarLocal, btnSincronizar;
+    private androidx.recyclerview.widget.RecyclerView rvUsuarios;
 
     private DatabaseHelper dbHelper;
     private List<Usuario> listaUsuarios;
@@ -40,22 +46,29 @@ public class UsuariosActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_usuarios);
 
-        Toolbar toolbar = findViewById(R.id.toolbarUsuarios);
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbarUsuarios);
         if (toolbar != null) {
             setSupportActionBar(toolbar);
             if (getSupportActionBar() != null) {
                 getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setDisplayShowHomeEnabled(true);
             }
         }
 
         dbHelper = new DatabaseHelper(this);
 
+        tilMatricula = findViewById(R.id.tilMatriculaUser);
+        tilPassword = findViewById(R.id.tilPasswordUser);
+        tilNombre = findViewById(R.id.tilNombreUser);
         etMatricula = findViewById(R.id.etMatriculaUser);
         etPassword = findViewById(R.id.etPasswordUser);
         etNombre = findViewById(R.id.etNombreUser);
         btnGuardarLocal = findViewById(R.id.btnGuardarLocal);
         btnSincronizar = findViewById(R.id.btnSincronizar);
-        lvUsuarios = findViewById(R.id.lvUsuarios);
+
+        rvUsuarios = findViewById(R.id.rvUsuarios);
+        rvUsuarios.setAdapter(new UsuariosAdapter());
+        rvUsuarios.setHasFixedSize(true);
 
         // Cargar lista inicial desde SQLite
         cargarUsuariosLocales();
@@ -66,10 +79,27 @@ public class UsuariosActivity extends AppCompatActivity {
             String pass = etPassword.getText().toString().trim();
             String nom = etNombre.getText().toString().trim();
 
-            if (mat.isEmpty() || pass.isEmpty() || nom.isEmpty()) {
-                Toast.makeText(this, "Por favor llena todos los campos", Toast.LENGTH_SHORT).show();
-                return;
+            boolean valido = true;
+            if (mat.isEmpty()) {
+                tilMatricula.setError("Ingresa la matrícula");
+                valido = false;
+            } else {
+                tilMatricula.setError(null);
             }
+            if (pass.isEmpty()) {
+                tilPassword.setError("Ingresa la contraseña");
+                valido = false;
+            } else {
+                tilPassword.setError(null);
+            }
+            if (nom.isEmpty()) {
+                tilNombre.setError("Ingresa el nombre");
+                valido = false;
+            } else {
+                tilNombre.setError(null);
+            }
+
+            if (!valido) return;
 
             boolean insertado = dbHelper.insertarUsuario(mat, pass, nom, 0); // 0 = Pendiente
             if (insertado) {
@@ -94,15 +124,6 @@ public class UsuariosActivity extends AppCompatActivity {
                 Toast.makeText(this, "Sin conexión a Internet. Se sincronizará más tarde.", Toast.LENGTH_LONG).show();
             }
         });
-
-        // Eliminar con Clic Largo
-        lvUsuarios.setOnItemLongClickListener((parent, view, position, id) -> {
-            Usuario u = listaUsuarios.get(position);
-            dbHelper.eliminarUsuario(u.getId());
-            Toast.makeText(this, "Usuario eliminado de SQLite", Toast.LENGTH_SHORT).show();
-            cargarUsuariosLocales();
-            return true;
-        });
     }
 
     @Override
@@ -113,15 +134,7 @@ public class UsuariosActivity extends AppCompatActivity {
 
     private void cargarUsuariosLocales() {
         listaUsuarios = dbHelper.obtenerTodosUsuarios();
-        ArrayList<String> visualizacion = new ArrayList<>();
-
-        for (Usuario u : listaUsuarios) {
-            String estado = (u.getSincronizado() == 1) ? " ✓" : " ⏳";
-            visualizacion.add(u.getMatricula() + " - " + u.getNombre() + estado);
-        }
-
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, visualizacion);
-        lvUsuarios.setAdapter(adapter);
+        rvUsuarios.getAdapter().notifyDataSetChanged();
     }
 
     private void sincronizarPendientes() {
@@ -135,32 +148,92 @@ public class UsuariosActivity extends AppCompatActivity {
         RequestQueue queue = Volley.newRequestQueue(this);
 
         for (Usuario u : pendientes) {
-            StringRequest stringRequest = new StringRequest(Request.Method.POST, URL_SYNC,
+            JSONObject jsonBody = new JSONObject();
+            try {
+                jsonBody.put("matricula", u.getMatricula());
+                jsonBody.put("password", u.getPassword());
+                jsonBody.put("nombre", u.getNombre());
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            // JsonObjectRequest envía JSON (Content-Type: application/json)
+            com.android.volley.toolbox.JsonObjectRequest jsonRequest = new com.android.volley.toolbox.JsonObjectRequest(Request.Method.POST, URL_SYNC, jsonBody,
                     response -> {
                         try {
-                            JSONObject json = new JSONObject(response);
-                            if (json.getBoolean("success")) {
+                            if (response.getBoolean("success")) {
                                 dbHelper.marcarComoSincronizado(u.getId());
                                 cargarUsuariosLocales();
                                 Toast.makeText(this, "Sincronizado: " + u.getNombre(), Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(this, "Error servidor: " + response.optString("message"), Toast.LENGTH_SHORT).show();
                             }
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
                     },
-                    error -> Toast.makeText(this, "Error al conectar con el servidor PHP", Toast.LENGTH_SHORT).show()) {
+                    error -> {
+                        String msg = "Error de red";
+                        if (error.networkResponse != null && error.networkResponse.data != null) {
+                            try {
+                                String err = new String(error.networkResponse.data);
+                                JSONObject je = new JSONObject(err);
+                                msg = je.optString("message", err);
+                            } catch (Exception ignored) {}
+                        }
+                        Toast.makeText(this, "Error: " + msg, Toast.LENGTH_SHORT).show();
+                    });
 
-                @Override
-                protected Map<String, String> getParams() {
-                    Map<String, String> params = new HashMap<>();
-                    params.put("matricula", u.getMatricula());
-                    params.put("password", u.getPassword());
-                    params.put("nombre", u.getNombre());
-                    return params;
-                }
-            };
+            queue.add(jsonRequest);
+        }
+    }
 
-            queue.add(stringRequest);
+    // ===== ADAPTER PARA RECYCLERVIEW =====
+    private class UsuariosAdapter extends androidx.recyclerview.widget.RecyclerView.Adapter<UsuariosAdapter.ViewHolder> {
+
+        @NonNull
+        @Override
+        public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+            View view = LayoutInflater.from(parent.getContext())
+                    .inflate(R.layout.item_usuario, parent, false);
+            return new ViewHolder(view);
+        }
+
+        @Override
+        public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+            Usuario u = listaUsuarios.get(position);
+            holder.tvMatriculaNombre.setText(u.getMatricula() + " - " + u.getNombre());
+
+            if (u.getSincronizado() == 1) {
+                holder.tvEstadoSync.setText("✓ Sincronizado");
+                holder.tvEstadoSync.setTextColor(getColor(R.color.md_sys_color_primary));
+            } else {
+                holder.tvEstadoSync.setText("⏳ Pendiente");
+                holder.tvEstadoSync.setTextColor(getColor(R.color.md_sys_color_secondary));
+            }
+
+            holder.ivEliminar.setOnClickListener(v -> {
+                dbHelper.eliminarUsuario(u.getId());
+                Toast.makeText(UsuariosActivity.this, "Usuario eliminado de SQLite", Toast.LENGTH_SHORT).show();
+                cargarUsuariosLocales();
+            });
+        }
+
+        @Override
+        public int getItemCount() {
+            return listaUsuarios.size();
+        }
+
+        class ViewHolder extends androidx.recyclerview.widget.RecyclerView.ViewHolder {
+            TextView tvMatriculaNombre, tvEstadoSync;
+            ImageView ivEliminar;
+
+            ViewHolder(View view) {
+                super(view);
+                tvMatriculaNombre = view.findViewById(R.id.tvMatriculaNombre);
+                tvEstadoSync = view.findViewById(R.id.tvEstadoSync);
+                ivEliminar = view.findViewById(R.id.ivEliminar);
+            }
         }
     }
 
@@ -168,5 +241,8 @@ public class UsuariosActivity extends AppCompatActivity {
         etMatricula.setText("");
         etPassword.setText("");
         etNombre.setText("");
+        tilMatricula.setError(null);
+        tilPassword.setError(null);
+        tilNombre.setError(null);
     }
 }

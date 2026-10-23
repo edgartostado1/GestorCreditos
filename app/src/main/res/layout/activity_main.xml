@@ -8,6 +8,18 @@
     android:padding="24dp"
     tools:context=".MainActivity">
 
+    <!-- MaterialToolbar -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarLogin"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/colorSurface"
+        app:title="@string/app_name"
+        app:titleTextColor="?attr/colorOnSurface"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- Logo del emblema académico -->
     <ImageView
         android:id="@+id/ivLogo"
@@ -20,41 +32,63 @@
         android:src="@drawable/logo_creditos"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/toolbarLogin" />
 
-    <!-- Campo: Matrícula -->
-    <EditText
-        android:id="@+id/etUsuario"
+    <!-- Campo: Matrícula (Material 3 TextInputLayout) -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilMatricula"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="16dp"
         android:hint="Matrícula"
-        android:inputType="text"
-        android:layout_margin="16dp"
+        app:boxBackgroundMode="filled"
         app:layout_constraintTop_toBottomOf="@id/ivLogo"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
-    <!-- Campo: Contraseña -->
-    <EditText
-        android:id="@+id/etPassword"
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etUsuario"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Campo: Contraseña (Material 3 TextInputLayout) -->
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilPassword"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Contraseña"
-        android:inputType="textPassword"
-        android:layout_margin="16dp"
-        app:layout_constraintTop_toBottomOf="@id/etUsuario"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <!-- Botón: Iniciar Sesión -->
-    <Button
-        android:id="@+id/btnLogin"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
         android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="8dp"
+        android:hint="Contraseña"
+        app:boxBackgroundMode="filled"
+        app:endIconMode="password_toggle"
+        app:layout_constraintTop_toBottomOf="@id/tilMatricula"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:maxLines="1" />
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- Botón: Iniciar Sesión (Material 3 Filled Button) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnLogin"
+        style="@style/Widget.GestorCreditos.Button.Filled"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="24dp"
         android:text="Iniciar Sesión"
-        app:layout_constraintTop_toBottomOf="@id/etPassword"
+        app:layout_constraintTop_toBottomOf="@id/tilPassword"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
