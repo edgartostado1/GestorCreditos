@@ -45,6 +45,12 @@
             android:name=".TutoresActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
+        <activity
+            android:name=".ActividadesTipoActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ActividadesSubtipoActivity"
+            android:exported="false" />
     </application>
 
 </manifest>
