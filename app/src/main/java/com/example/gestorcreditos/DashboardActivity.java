@@ -42,7 +42,9 @@ public class DashboardActivity extends AppCompatActivity {
             new AccionRapida(R.drawable.ic_programas, "Programas", "Gestionar programas", ProgramasActivity.class),
             new AccionRapida(R.drawable.ic_tutores, "Tutores", "Gestionar tutores", TutoresActivity.class),
             new AccionRapida(R.drawable.ic_usuarios, "Usuarios", "Gestionar usuarios", UsuariosActivity.class),
-            new AccionRapida(R.drawable.ic_dashboard, "Créditos", "Ver detalle", null) // null = solo info
+            new AccionRapida(R.drawable.ic_add, "Tipo de Actividad", "Gestionar tipos", ActividadesTipoActivity.class),
+            new AccionRapida(R.drawable.ic_add, "Subtipo de Actividad", "Gestionar subtipos", ActividadesSubtipoActivity.class),
+            new AccionRapida(R.drawable.ic_dashboard, "Créditos", "Ver detalle", null)
     };
 
     @Override
