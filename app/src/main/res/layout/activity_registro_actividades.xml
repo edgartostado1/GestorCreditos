@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Paso 1: Selecciona el Tipo de Actividad"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinnerTipo"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Paso 2: Selecciona el Subtipo"
+        android:textStyle="bold"
+        android:layout_marginTop="16dp" />
+
+    <Spinner
+        android:id="@+id/spinnerSubtipo"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="8dp" />
+
+    <EditText
+        android:id="@+id/etFecha"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Fecha (YYYY-MM-DD)"
+        android:inputType="date"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/etHoras"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Horas de la actividad"
+        android:inputType="number"
+        android:layout_marginTop="8dp" />
+
+    <EditText
+        android:id="@+id/etDescripcion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Breve descripción o comprobante"
+        android:inputType="textMultiLine"
+        android:lines="3"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/btnRegistrar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Registrar Actividad"
+        android:layout_marginTop="24dp" />
+</LinearLayout>

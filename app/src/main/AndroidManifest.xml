@@ -51,6 +51,9 @@
         <activity
             android:name=".ActividadesSubtipoActivity"
             android:exported="false" />
+        <activity
+            android:name=".RegistroActividadesActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

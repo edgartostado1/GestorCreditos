@@ -22,6 +22,7 @@ public class DashboardActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigation;
     private RecyclerView rvAccionesRapidas;
     private TextView tvDatoPrincipal, tvDatoPrincipalLabel;
+    private String matricula;
 
     // Acciones rápidas para el grid
     private static final class AccionRapida {
@@ -51,6 +52,10 @@ public class DashboardActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
+
+        // Recuperar matrícula del intent (enviada por MainActivity)
+        matricula = getIntent().getStringExtra("MATRICULA_ALUMNO");
+        if (matricula == null) matricula = "12345";
 
         // Toolbar
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -121,7 +126,11 @@ public class DashboardActivity extends AppCompatActivity {
 
             holder.cardView.setOnClickListener(v -> {
                 if (accion.destino != null) {
-                    startActivity(new Intent(DashboardActivity.this, accion.destino));
+                    Intent intent = new Intent(DashboardActivity.this, accion.destino);
+                    if (accion.destino == RegistroActividadesActivity.class && matricula != null) {
+                        intent.putExtra("MATRICULA_ALUMNO", matricula);
+                    }
+                    startActivity(intent);
                 } else {
                     Toast.makeText(DashboardActivity.this, "Próximamente: Detalle de créditos", Toast.LENGTH_SHORT).show();
                 }

@@ -53,4 +53,13 @@ public interface ApiService {
     // CREAR: envía un objeto ActividadSubtipo en el cuerpo
     @POST("crud_actividades_subtipo.php")
     Call<ResponseBody> crearSubtipo(@Body ActividadSubtipo subtipo);
+
+    // ===== MOVIMIENTOS DE ACTIVIDADES =====
+    // LEER: trae la lista de movimientos (opcional por matrícula)
+    @GET("crud_movimientos_actividades.php")
+    Call<List<MovimientoActividad>> getMovimientos(@Query("matricula") String matricula);
+
+    // CREAR: envía un objeto MovimientoActividad en el cuerpo
+    @POST("crud_movimientos_actividades.php")
+    Call<ResponseBody> registrarMovimiento(@Body MovimientoActividad movimiento);
 }
