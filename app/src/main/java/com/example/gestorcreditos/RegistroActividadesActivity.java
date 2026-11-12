@@ -9,6 +9,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
+import android.text.Editable;
+import android.text.TextWatcher;
 import androidx.appcompat.app.AppCompatActivity;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,37 @@ public class RegistroActividadesActivity extends AppCompatActivity {
         // Recuperar matrícula del intent (enviada por DashboardActivity)
         matriculaAlumno = getIntent().getStringExtra("MATRICULA_ALUMNO");
         if (matriculaAlumno == null) matriculaAlumno = "12345";
+
+        // Formatear fecha automáticamente como DD/MM/AA
+        etFecha.addTextChangedListener(new TextWatcher() {
+            private boolean isFormatting = false;
+
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) { }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                if (isFormatting) return;
+                isFormatting = true;
+
+                String digits = s.toString().replaceAll("[^0-9]", "");
+                if (digits.length() > 6) digits = digits.substring(0, 6);
+
+                StringBuilder formatted = new StringBuilder();
+                for (int i = 0; i < digits.length(); i++) {
+                    if (i == 2 || i == 4) {
+                        formatted.append('/');
+                    }
+                    formatted.append(digits.charAt(i));
+                }
+
+                s.replace(0, s.length(), formatted.toString());
+                isFormatting = false;
+            }
+        });
 
         cargarTiposYSubtipos();
 
@@ -135,8 +168,8 @@ public class RegistroActividadesActivity extends AppCompatActivity {
         String horasStr = etHoras.getText().toString().trim();
         String desc = etDescripcion.getText().toString().trim();
 
-        if (fecha.isEmpty() || horasStr.isEmpty() || desc.isEmpty()) {
-            Toast.makeText(this, "Debe llenar todos los campos", Toast.LENGTH_SHORT).show();
+        if (fecha.length() != 8 || fecha.isEmpty() || horasStr.isEmpty() || desc.isEmpty()) {
+            Toast.makeText(this, "Debe llenar todos los campos (fecha: DD/MM/AA)", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -156,7 +189,8 @@ public class RegistroActividadesActivity extends AppCompatActivity {
         }
 
         // Enviar a la Base de Datos con Retrofit
-        MovimientoActividad mov = new MovimientoActividad(matriculaAlumno, subtipoElegido.getId(), fecha, horasIngresadas, desc);
+        String fechaMySQL = convertirFechaAMySQL(fecha);
+        MovimientoActividad mov = new MovimientoActividad(matriculaAlumno, subtipoElegido.getId(), fechaMySQL, horasIngresadas, desc);
         RetrofitClient.getInstance().getApi().registrarMovimiento(mov).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -171,5 +205,17 @@ public class RegistroActividadesActivity extends AppCompatActivity {
                 Toast.makeText(RegistroActividadesActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // Convierte DD/MM/AA → YYYY-MM-DD (formato MySQL)
+    private String convertirFechaAMySQL(String fecha) {
+        String[] parts = fecha.split("/");
+        if (parts.length != 3) return fecha;
+        String dd = parts[0];
+        String mm = parts[1];
+        String yy = parts[2];
+        int year = Integer.parseInt(yy);
+        if (year < 100) year += 2000;
+        return String.format("%04d-%02d-%02d", year, Integer.parseInt(mm), Integer.parseInt(dd));
     }
 }

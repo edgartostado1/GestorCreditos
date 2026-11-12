@@ -34,8 +34,10 @@
         android:id="@+id/etFecha"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Fecha (YYYY-MM-DD)"
-        android:inputType="date"
+        android:hint="Fecha (DD/MM/AA)"
+        android:inputType="number"
+        android:digits="0123456789"
+        android:maxLength="8"
         android:layout_marginTop="16dp" />
 
     <EditText
