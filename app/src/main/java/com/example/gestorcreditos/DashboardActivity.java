@@ -45,6 +45,7 @@ public class DashboardActivity extends AppCompatActivity {
             new AccionRapida(R.drawable.ic_usuarios, "Usuarios", "Gestionar usuarios", UsuariosActivity.class),
             new AccionRapida(R.drawable.ic_add, "Tipo de Actividad", "Gestionar tipos", ActividadesTipoActivity.class),
             new AccionRapida(R.drawable.ic_add, "Subtipo de Actividad", "Gestionar subtipos", ActividadesSubtipoActivity.class),
+            new AccionRapida(R.drawable.ic_add, "Registrar Actividad", "Registrar mis actividades", RegistroActividadesActivity.class),
             new AccionRapida(R.drawable.ic_dashboard, "Créditos", "Ver detalle", null)
     };
 
