@@ -155,6 +155,7 @@ public class UsuariosActivity extends AppCompatActivity {
 
     private void cargarUsuariosLocales() {
         listaUsuarios = dbHelper.obtenerTodosUsuarios();
+        listaTutores = dbHelper.obtenerTodosTutores();
         rvUsuarios.getAdapter().notifyDataSetChanged();
     }
 
@@ -171,6 +172,10 @@ public class UsuariosActivity extends AppCompatActivity {
                         listaTutores
                     );
                     spinnerTutor.setAdapter(adapter);
+                    // Re-render the user list to show tutor names
+                    if (rvUsuarios.getAdapter() != null) {
+                        rvUsuarios.getAdapter().notifyDataSetChanged();
+                    }
                 }
             }
 
@@ -258,6 +263,18 @@ public class UsuariosActivity extends AppCompatActivity {
                 holder.tvEstadoSync.setTextColor(getColor(R.color.md_sys_color_secondary));
             }
 
+            // Mostrar tutor asignado
+            String nombreTutor = "Sin asignar";
+            if (listaTutores != null) {
+                for (Tutor t : listaTutores) {
+                    if (t.getId() == u.getId_tutor()) {
+                        nombreTutor = t.getNombre() + " (" + t.getClave() + ")";
+                        break;
+                    }
+                }
+            }
+            holder.tvTutorAsignado.setText("Tutor: " + nombreTutor);
+
             holder.ivEliminar.setOnClickListener(v -> {
                 dbHelper.eliminarUsuario(u.getId());
                 Toast.makeText(UsuariosActivity.this, "Usuario eliminado de SQLite", Toast.LENGTH_SHORT).show();
@@ -271,13 +288,14 @@ public class UsuariosActivity extends AppCompatActivity {
         }
 
         class ViewHolder extends androidx.recyclerview.widget.RecyclerView.ViewHolder {
-            TextView tvMatriculaNombre, tvEstadoSync;
+            TextView tvMatriculaNombre, tvEstadoSync, tvTutorAsignado;
             ImageView ivEliminar;
 
             ViewHolder(View view) {
                 super(view);
                 tvMatriculaNombre = view.findViewById(R.id.tvMatriculaNombre);
                 tvEstadoSync = view.findViewById(R.id.tvEstadoSync);
+                tvTutorAsignado = view.findViewById(R.id.tvTutorAsignado);
                 ivEliminar = view.findViewById(R.id.ivEliminar);
             }
         }
