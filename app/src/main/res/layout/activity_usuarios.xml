@@ -110,6 +110,20 @@
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Asignar Tutor al Alumno:"
+                android:textStyle="bold"
+                android:layout_marginTop="12dp" />
+
+            <Spinner
+                android:id="@+id/spinnerTutorAsignado"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="4dp"
+                android:background="@android:drawable/btn_dropdown" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

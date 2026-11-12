@@ -38,4 +38,10 @@ public class Tutor {
     // Setters (necesarios para BD local y sync)
     public void setId(int id) { this.id = id; }
     public void setSincronizado(int sincronizado) { this.sincronizado = sincronizado; }
+
+    // toString para que el Spinner muestre el nombre del tutor
+    @Override
+    public String toString() {
+        return nombre + " (" + clave + ")";
+    }
 }

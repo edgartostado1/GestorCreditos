@@ -5,8 +5,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ArrayAdapter;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,6 +19,10 @@ import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -34,6 +40,8 @@ public class UsuariosActivity extends AppCompatActivity {
     private com.google.android.material.textfield.TextInputEditText etMatricula, etPassword, etNombre;
     private com.google.android.material.button.MaterialButton btnGuardarLocal, btnSincronizar;
     private androidx.recyclerview.widget.RecyclerView rvUsuarios;
+    private Spinner spinnerTutor;
+    private List<Tutor> listaTutores;
 
     private DatabaseHelper dbHelper;
     private List<Usuario> listaUsuarios;
@@ -65,6 +73,7 @@ public class UsuariosActivity extends AppCompatActivity {
         etNombre = findViewById(R.id.etNombreUser);
         btnGuardarLocal = findViewById(R.id.btnGuardarLocal);
         btnSincronizar = findViewById(R.id.btnSincronizar);
+        spinnerTutor = findViewById(R.id.spinnerTutorAsignado);
 
         rvUsuarios = findViewById(R.id.rvUsuarios);
         rvUsuarios.setAdapter(new UsuariosAdapter());
@@ -72,6 +81,9 @@ public class UsuariosActivity extends AppCompatActivity {
 
         // Cargar lista inicial desde SQLite
         cargarUsuariosLocales();
+
+        // Cargar tutores en el Spinner
+        cargarTutoresEnSpinner();
 
         // Guardar Localmente en SQLite
         btnGuardarLocal.setOnClickListener(v -> {
@@ -99,9 +111,18 @@ public class UsuariosActivity extends AppCompatActivity {
                 tilNombre.setError(null);
             }
 
+            // Obtener Tutor seleccionado
+            Tutor tutorSeleccionado = (Tutor) spinnerTutor.getSelectedItem();
+            if (tutorSeleccionado == null) {
+                Toast.makeText(this, "Debe asignar un tutor", Toast.LENGTH_SHORT).show();
+                valido = false;
+            }
+
             if (!valido) return;
 
-            boolean insertado = dbHelper.insertarUsuario(mat, pass, nom, 0); // 0 = Pendiente
+            int idTutor = tutorSeleccionado.getId();
+
+            boolean insertado = dbHelper.insertarUsuario(mat, pass, nom, idTutor, 0); // 0 = Pendiente
             if (insertado) {
                 Toast.makeText(this, "Guardado localmente en SQLite", Toast.LENGTH_SHORT).show();
                 limpiarCampos();
@@ -137,6 +158,30 @@ public class UsuariosActivity extends AppCompatActivity {
         rvUsuarios.getAdapter().notifyDataSetChanged();
     }
 
+    // MÉTODO PARA CARGAR EL COMBOBOX CON TUTORES DE LA BD VÍA RETROFIT
+    private void cargarTutoresEnSpinner() {
+        RetrofitClient.getInstance().getApi().getTutores().enqueue(new Callback<List<Tutor>>() {
+            @Override
+            public void onResponse(Call<List<Tutor>> call, Response<List<Tutor>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    listaTutores = response.body();
+                    ArrayAdapter<Tutor> adapter = new ArrayAdapter<>(
+                        UsuariosActivity.this,
+                        android.R.layout.simple_spinner_dropdown_item,
+                        listaTutores
+                    );
+                    spinnerTutor.setAdapter(adapter);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<Tutor>> call, Throwable t) {
+                Toast.makeText(UsuariosActivity.this, "Error cargando tutores", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
     private void sincronizarPendientes() {
         List<Usuario> pendientes = dbHelper.obtenerUsuariosPendientes();
 
@@ -153,6 +198,7 @@ public class UsuariosActivity extends AppCompatActivity {
                 jsonBody.put("matricula", u.getMatricula());
                 jsonBody.put("password", u.getPassword());
                 jsonBody.put("nombre", u.getNombre());
+                jsonBody.put("id_tutor", u.getId_tutor());
             } catch (JSONException e) {
                 e.printStackTrace();
             }

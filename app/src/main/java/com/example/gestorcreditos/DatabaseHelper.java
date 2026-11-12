@@ -12,7 +12,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "GestorCreditosLocal.db";
-    private static final int DATABASE_VERSION = 3;  // Subida de versión para nueva tabla
+    private static final int DATABASE_VERSION = 4;  // Subida de versión: id_tutor en usuarios
 
     // Tabla de Usuarios
     public static final String TABLE_USUARIOS = "usuarios";
@@ -20,6 +20,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_MATRICULA = "matricula";
     public static final String COLUMN_PASSWORD = "password";
     public static final String COLUMN_NOMBRE = "nombre";
+    public static final String COLUMN_ID_TUTOR = "id_tutor"; // NUEVO
     // Estado de sincronización: 0 = Pendiente, 1 = Sincronizado
     public static final String COLUMN_SINCRONIZADO = "sincronizado";
 
@@ -44,6 +45,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 + COLUMN_MATRICULA + " TEXT, "
                 + COLUMN_PASSWORD + " TEXT, "
                 + COLUMN_NOMBRE + " TEXT, "
+                + COLUMN_ID_TUTOR + " INTEGER, "
                 + COLUMN_SINCRONIZADO + " INTEGER DEFAULT 0)";
         db.execSQL(CREATE_USUARIOS);
 
@@ -68,12 +70,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     // --- OPERACIONES CRUD LOCALES ---
 
     // 1. CREAR / INSERTAR USUARIO LOCALMENTE
-    public boolean insertarUsuario(String matricula, String password, String nombre, int sincronizado) {
+    public boolean insertarUsuario(String matricula, String password, String nombre, int id_tutor, int sincronizado) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_MATRICULA, matricula);
         values.put(COLUMN_PASSWORD, password);
         values.put(COLUMN_NOMBRE, nombre);
+        values.put(COLUMN_ID_TUTOR, id_tutor);
         values.put(COLUMN_SINCRONIZADO, sincronizado);
 
         long result = db.insert(TABLE_USUARIOS, null, values);
@@ -92,9 +95,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String matricula = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_MATRICULA));
                 String password = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD));
                 String nombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE));
+                int id_tutor = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID_TUTOR));
                 int sincronizado = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SINCRONIZADO));
 
-                lista.add(new Usuario(id, matricula, password, nombre, sincronizado));
+                lista.add(new Usuario(id, matricula, password, nombre, id_tutor, sincronizado));
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -113,8 +117,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 String matricula = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_MATRICULA));
                 String password = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_PASSWORD));
                 String nombre = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_NOMBRE));
+                int id_tutor = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ID_TUTOR));
 
-                lista.add(new Usuario(id, matricula, password, nombre, 0));
+                lista.add(new Usuario(id, matricula, password, nombre, id_tutor, 0));
             } while (cursor.moveToNext());
         }
         cursor.close();
