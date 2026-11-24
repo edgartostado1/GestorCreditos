@@ -15,6 +15,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.android.material.card.MaterialCardView;
 
 public class DashboardActivity extends AppCompatActivity {
@@ -98,6 +99,10 @@ public class DashboardActivity extends AppCompatActivity {
 
         // Cargar dato principal (simulado - luego conectar con BD real)
         cargarDatoPrincipal();
+
+        // Obtener y guardar token FCM del tutor (para notificaciones push)
+        // Nota: idTutor = 1 por defecto; ajustar según el tutor logueado
+        obtenerYGuardarTokenTutor(1);
     }
 
     private void cargarDatoPrincipal() {
@@ -105,6 +110,39 @@ public class DashboardActivity extends AppCompatActivity {
         // Por ahora datos de prueba
         tvDatoPrincipal.setText("120");
         tvDatoPrincipalLabel.setText("CRÉDITOS DISPONIBLES");
+    }
+
+    // Obtener token FCM y enviarlo al servidor (para notificaciones push al tutor)
+    private void obtenerYGuardarTokenTutor(int idTutor) {
+        FirebaseMessaging.getInstance().getToken()
+            .addOnCompleteListener(task -> {
+                if (!task.isSuccessful()) {
+                    android.util.Log.w("FCM", "Fallo al obtener token FCM", task.getException());
+                    return;
+                }
+                String tokenFCM = task.getResult();
+                android.util.Log.d("FCM", "Token FCM obtenido: " + tokenFCM);
+
+                java.util.Map<String, Object> body = new java.util.HashMap<>();
+                body.put("id_tutor", idTutor);
+                body.put("fcm_token", tokenFCM);
+
+                RetrofitClient.getInstance().getApi().actualizarTokenTutor(body).enqueue(new retrofit2.Callback<okhttp3.ResponseBody>() {
+                    @Override
+                    public void onResponse(retrofit2.Call<okhttp3.ResponseBody> call, retrofit2.Response<okhttp3.ResponseBody> response) {
+                        if (response.isSuccessful()) {
+                            android.util.Log.d("FCM", "Token FCM actualizado en servidor");
+                        } else {
+                            android.util.Log.e("FCM", "Error al actualizar token FCM: " + response.code());
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(retrofit2.Call<okhttp3.ResponseBody> call, Throwable t) {
+                        android.util.Log.e("FCM", "Error de red al actualizar token FCM", t);
+                    }
+                });
+            });
     }
 
     // ===== ADAPTER PARA ACCIONES RÁPIDAS =====

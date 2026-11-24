@@ -62,4 +62,8 @@ public interface ApiService {
     // CREAR: envía un objeto MovimientoActividad en el cuerpo
     @POST("crud_movimientos_actividades.php")
     Call<ResponseBody> registrarMovimiento(@Body MovimientoActividad movimiento);
+
+    // ===== FCM TOKEN TUTOR =====
+    @POST("actualizar_token_tutor.php")
+    Call<ResponseBody> actualizarTokenTutor(@Body java.util.Map<String, Object> body);
 }
