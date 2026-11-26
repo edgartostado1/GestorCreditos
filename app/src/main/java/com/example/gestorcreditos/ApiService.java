@@ -35,4 +35,35 @@ public interface ApiService {
     // ELIMINAR: envía el ID por la URL (crud_tutores.php?id=5)
     @DELETE("crud_tutores.php")
     Call<ResponseBody> eliminarTutor(@Query("id") int id);
+
+    // ===== ACTIVIDADES TIPO =====
+    // LEER: trae la lista de tipos
+    @GET("crud_actividades_tipo.php")
+    Call<List<ActividadTipo>> getTipos();
+
+    // CREAR: envía un objeto ActividadTipo en el cuerpo
+    @POST("crud_actividades_tipo.php")
+    Call<ResponseBody> crearTipo(@Body ActividadTipo tipo);
+
+    // ===== ACTIVIDADES SUBTIPO =====
+    // LEER: trae la lista de subtipos (con nombre del tipo)
+    @GET("crud_actividades_subtipo.php")
+    Call<List<ActividadSubtipo>> getSubtipos();
+
+    // CREAR: envía un objeto ActividadSubtipo en el cuerpo
+    @POST("crud_actividades_subtipo.php")
+    Call<ResponseBody> crearSubtipo(@Body ActividadSubtipo subtipo);
+
+    // ===== MOVIMIENTOS DE ACTIVIDADES =====
+    // LEER: trae la lista de movimientos (opcional por matrícula)
+    @GET("crud_movimientos_actividades.php")
+    Call<List<MovimientoActividad>> getMovimientos(@Query("matricula") String matricula);
+
+    // CREAR: envía un objeto MovimientoActividad en el cuerpo
+    @POST("crud_movimientos_actividades.php")
+    Call<ResponseBody> registrarMovimiento(@Body MovimientoActividad movimiento);
+
+    // ===== FCM TOKEN TUTOR =====
+    @POST("actualizar_token_tutor.php")
+    Call<ResponseBody> actualizarTokenTutor(@Body java.util.Map<String, Object> body);
 }

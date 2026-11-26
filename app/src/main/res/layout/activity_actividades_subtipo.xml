@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Seleccione el Tipo de Actividad:"
+        android:textStyle="bold" />
+
+    <Spinner
+        android:id="@+id/spinnerTipos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp" />
+
+    <EditText
+        android:id="@+id/etNombreSubtipo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Nombre del Subtipo de Actividad"
+        android:layout_marginTop="16dp" />
+
+    <EditText
+        android:id="@+id/etCreditos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Créditos otorgados"
+        android:inputType="number"
+        android:layout_marginTop="8dp" />
+
+    <Button
+        android:id="@+id/btnGuardarSubtipo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Guardar Subtipo"
+        android:layout_marginTop="16dp" />
+
+    <ListView
+        android:id="@+id/lvSubtipos"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="16dp" />
+</LinearLayout>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/nav_dashboard"
+        android:icon="@drawable/ic_dashboard"
+        android:title="Inicio"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/nav_programas"
+        android:icon="@drawable/ic_programas"
+        android:title="Programas"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/nav_tutores"
+        android:icon="@drawable/ic_tutores"
+        android:title="Tutores"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/nav_usuarios"
+        android:icon="@drawable/ic_usuarios"
+        android:title="Usuarios"
+        app:showAsAction="ifRoom" />
+
+</menu>

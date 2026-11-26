@@ -1,12 +1,15 @@
 package com.example.gestorcreditos;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
+
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.button.MaterialButton;
 
 // Importaciones de Volley
 import com.android.volley.Request;
@@ -24,9 +27,9 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
-    private EditText etUsuario;
-    private EditText etPassword;
-    private Button btnLogin;
+    private TextInputLayout tilMatricula, tilPassword;
+    private TextInputEditText etUsuario, etPassword;
+    private MaterialButton btnLogin;
 
     // URL centralizada en Config.java
     private static final String URL_LOGIN = Config.URL_LOGIN;
@@ -36,6 +39,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Toolbar
+        Toolbar toolbar = findViewById(R.id.toolbarLogin);
+        if (toolbar != null) {
+            setSupportActionBar(toolbar);
+        }
+
+        tilMatricula = findViewById(R.id.tilMatricula);
+        tilPassword = findViewById(R.id.tilPassword);
         etUsuario = findViewById(R.id.etUsuario);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
@@ -46,9 +57,22 @@ public class MainActivity extends AppCompatActivity {
                 String usuario = etUsuario.getText().toString().trim();
                 String password = etPassword.getText().toString().trim();
 
-                if (usuario.isEmpty() || password.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Llena todos los campos", Toast.LENGTH_SHORT).show();
+                // Validación visual con TextInputLayout
+                boolean valido = true;
+                if (usuario.isEmpty()) {
+                    tilMatricula.setError("Ingresa tu matrícula");
+                    valido = false;
                 } else {
+                    tilMatricula.setError(null);
+                }
+                if (password.isEmpty()) {
+                    tilPassword.setError("Ingresa tu contraseña");
+                    valido = false;
+                } else {
+                    tilPassword.setError(null);
+                }
+
+                if (valido) {
                     validarLoginServidor(usuario, password);
                 }
             }

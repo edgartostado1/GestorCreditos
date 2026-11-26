@@ -59,6 +59,11 @@ coverage/
 signing.properties
 keystore.properties
 
+# Firebase / Service Account (never commit credentials!)
+service-account.json
+*.json
+!google-services.json
+
 # Generated
 generated/
 out/
