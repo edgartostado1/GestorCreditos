@@ -8,6 +8,7 @@ material = "1.14.0"
 activityKtx = "1.13.0"
 constraintlayout = "2.2.2"
 recyclerview = "1.4.0"
+playServicesLocation = "21.2.0"
 googleServices = "4.4.2"
 firebaseMessaging = "24.1.0"
 
@@ -20,6 +21,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 recyclerview = { group = "androidx.recyclerview", name = "recyclerview", version.ref = "recyclerview" }
+play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging", version.ref = "firebaseMessaging" }
 
 [plugins]

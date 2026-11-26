@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -56,6 +57,68 @@
         android:inputType="textMultiLine"
         android:lines="3"
         android:layout_marginTop="8dp" />
+
+    <!-- Previsualizador de la Evidencia Fotográfica -->
+    <ImageView
+        android:id="@+id/imgPrevisualizacionEvidencia"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:scaleType="centerCrop"
+        android:background="#E0E0E0"
+        android:contentDescription="Evidencia fotográfica"
+        android:layout_marginTop="12dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <Button
+            android:id="@+id/btnTomarFoto"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Tomar Foto" />
+
+        <Space
+            android:layout_width="8dp"
+            android:layout_height="wrap_content" />
+
+        <Button
+            android:id="@+id/btnAbrirGaleria"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Galería" />
+    </LinearLayout>
+
+    <!-- Ubicación GPS -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="12dp">
+
+        <Button
+            android:id="@+id/btnObtenerUbicacion"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Obtener GPS" />
+
+        <TextView
+            android:id="@+id/tvUbicacionCapturada"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ubicación: No registrada"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:layout_marginStart="12dp" />
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnRegistrar"

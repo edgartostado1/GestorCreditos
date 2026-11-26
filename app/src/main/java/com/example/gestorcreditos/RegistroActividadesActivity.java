@@ -1,36 +1,61 @@
 package com.example.gestorcreditos;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore;
+import android.util.Base64;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
-import android.text.Editable;
-import android.text.TextWatcher;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import android.text.Editable;
+import android.text.TextWatcher;
 
 public class RegistroActividadesActivity extends AppCompatActivity {
 
     private Spinner spinnerTipo, spinnerSubtipo;
     private EditText etFecha, etHoras, etDescripcion;
-    private Button btnRegistrar;
+    private Button btnRegistrar, btnCamara, btnGaleria, btnUbicacion;
+    private ImageView imgEvidencia;
+    private TextView tvUbicacion;
 
     private List<ActividadTipo> listaTiposGlobal;
     private List<ActividadSubtipo> listaSubtiposGlobal;
     private List<ActividadSubtipo> listaSubtiposFiltrados;
 
-    // La matrícula se recibe desde DashboardActivity
     private String matriculaAlumno;
+    private String fotoBase64 = "";
+    private String ubicacionGPS = "";
+
+    private FusedLocationProviderClient fusedLocationClient;
+
+    private ActivityResultLauncher<Intent> cameraLauncher;
+    private ActivityResultLauncher<Intent> galleryLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,9 +69,16 @@ public class RegistroActividadesActivity extends AppCompatActivity {
         etDescripcion = findViewById(R.id.etDescripcion);
         btnRegistrar = findViewById(R.id.btnRegistrar);
 
+        imgEvidencia = findViewById(R.id.imgPrevisualizacionEvidencia);
+        btnCamara = findViewById(R.id.btnTomarFoto);
+        btnGaleria = findViewById(R.id.btnAbrirGaleria);
+        btnUbicacion = findViewById(R.id.btnObtenerUbicacion);
+        tvUbicacion = findViewById(R.id.tvUbicacionCapturada);
+
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
         listaSubtiposFiltrados = new ArrayList<>();
 
-        // Recuperar matrícula del intent (enviada por DashboardActivity)
         matriculaAlumno = getIntent().getStringExtra("MATRICULA_ALUMNO");
         if (matriculaAlumno == null) matriculaAlumno = "12345";
 
@@ -100,6 +132,37 @@ public class RegistroActividadesActivity extends AppCompatActivity {
 
         // 2. Evento del botón Registrar
         btnRegistrar.setOnClickListener(v -> validarFormularioYRegistrar());
+
+        // 3. Launchers para Cámara y Galería
+        cameraLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Bitmap photo = (Bitmap) result.getData().getExtras().get("data");
+                    imgEvidencia.setImageBitmap(photo);
+                    fotoBase64 = convertirBitmapABase64(photo);
+                }
+            });
+
+        galleryLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    Uri selectedImage = result.getData().getData();
+                    try {
+                        InputStream imageStream = getContentResolver().openInputStream(selectedImage);
+                        Bitmap bitmap = BitmapFactory.decodeStream(imageStream);
+                        imgEvidencia.setImageBitmap(bitmap);
+                        fotoBase64 = convertirBitmapABase64(bitmap);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+        btnCamara.setOnClickListener(v -> abrirCamara());
+        btnGaleria.setOnClickListener(v -> abrirGaleria());
+        btnUbicacion.setOnClickListener(v -> obtenerUbicacionGPS());
     }
 
     private void cargarTiposYSubtipos() {
@@ -190,7 +253,7 @@ public class RegistroActividadesActivity extends AppCompatActivity {
 
         // Enviar a la Base de Datos con Retrofit
         String fechaMySQL = convertirFechaAMySQL(fecha);
-        MovimientoActividad mov = new MovimientoActividad(matriculaAlumno, subtipoElegido.getId(), fechaMySQL, horasIngresadas, desc);
+        MovimientoActividad mov = new MovimientoActividad(matriculaAlumno, subtipoElegido.getId(), fechaMySQL, horasIngresadas, desc, fotoBase64, ubicacionGPS);
         RetrofitClient.getInstance().getApi().registrarMovimiento(mov).enqueue(new Callback<ResponseBody>() {
             @Override
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -205,6 +268,44 @@ public class RegistroActividadesActivity extends AppCompatActivity {
                 Toast.makeText(RegistroActividadesActivity.this, "Error de conexión", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    private void abrirCamara() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, 100);
+            return;
+        }
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraLauncher.launch(intent);
+    }
+
+    private void abrirGaleria() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        galleryLauncher.launch(intent);
+    }
+
+    private void obtenerUbicacionGPS() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 101);
+            return;
+        }
+        fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+            if (location != null) {
+                ubicacionGPS = location.getLatitude() + ", " + location.getLongitude();
+                tvUbicacion.setText("GPS: " + ubicacionGPS);
+                Toast.makeText(this, "Ubicación obtenida", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Asegúrate de activar el GPS en el dispositivo", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // Convertidor de Bitmap a String Base64 para enviar vía JSON a PHP
+    private String convertirBitmapABase64(Bitmap bitmap) {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream); // Compresión al 70%
+        byte[] byteArray = byteArrayOutputStream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
 
     // Convierte DD/MM/AA → YYYY-MM-DD (formato MySQL)
